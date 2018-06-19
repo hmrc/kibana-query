@@ -25,14 +25,17 @@ import play.api.libs.ws.ahc.AhcWSClient
 import play.api.libs.ws.{WSAuthScheme, WSClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
 object KibanaQuery {
 
   def main(args: Array[String]): Unit = {
     args match {
       case Array(kibanaUrl, username, password, queryJsonFilename) =>
-        withWSClient(ws => runQuery(ws, kibanaUrl, username, password, queryJsonFilename))
+        val future = withWSClient(ws => runQuery(ws, kibanaUrl, username, password, queryJsonFilename))
+        Await.result(future, 60 seconds)
       case _ =>
         System.err.println("Usage: KibanaQuery <kibana URL> <username> <password> <query JSON filename>")
         sys.exit(1)
